@@ -3214,17 +3214,24 @@ function submitNamePrompt(){
   if(window._onNameDone) window._onNameDone(name);
 }
 
+const REQUIRED_OWNER_PIN = '9527645732';
 function renderOwnerSetup(){
   showGate(`
     <h2>Set up owner access</h2>
-    <p>No owner PIN exists yet for this dashboard — as the first person here, you're setting it up. Choose a PIN only you (and whoever you trust with upload rights) will know. You'll use it to unlock document uploads and approve new viewers.</p>
-    <input type="password" id="gatePin" placeholder="Choose a PIN (min 4 characters)">
+    <p>No owner PIN exists yet for this dashboard — as the first person here, you're setting it up. Enter the designated owner PIN to claim owner access. You'll use it to unlock document uploads and approve new viewers.</p>
+    <input type="password" id="gatePin" placeholder="Enter owner PIN">
     <button class="btn-primary" onclick="submitOwnerSetup()">Set PIN &amp; enter as owner</button>
+    <div class="pass-gate-error" id="ownerSetupError"></div>
   `);
 }
 async function submitOwnerSetup(){
   const pin = document.getElementById('gatePin').value||'';
-  if(pin.length<4){ alert('Use at least 4 characters.'); return; }
+  const errEl = document.getElementById('ownerSetupError');
+  if(pin !== REQUIRED_OWNER_PIN){
+    if(errEl) errEl.textContent = 'wrong Passcode';
+    document.getElementById('gatePin').value = '';
+    return;
+  }
   const hash = await sha256Hex(pin);
   try{ await window.storage.set('owner-pin-hash', hash, true); }catch(e){}
   isOwner = true;
