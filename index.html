@@ -222,6 +222,17 @@ input, select, textarea{font-family:inherit;}
 .gate-box .btn-primary:hover{background:#8f3a26;}
 .gate-box .gate-alt{font-size:11.5px; color:var(--slate); text-align:center; margin-top:14px;}
 .gate-box .gate-alt a{color:var(--gold); cursor:pointer; font-weight:600;}
+
+/* passcode entry gate */
+.pass-gate-bg{position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:900; padding:20px;}
+.pass-gate-box{background:var(--paper); border-radius:14px; max-width:400px; width:100%; padding:36px 32px; box-shadow:0 30px 80px rgba(0,0,0,0.5); text-align:center;}
+.pass-gate-box .brand-mark{font-family:var(--font-display); font-weight:700; font-size:24px; letter-spacing:0.5px; color:var(--ink); margin-bottom:6px;}
+.pass-gate-box .brand-mark em{color:var(--rust); font-style:normal;}
+.pass-gate-box p{font-size:13px; color:var(--slate); margin-bottom:18px;}
+.pass-gate-box input{width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:8px; font-size:18px; letter-spacing:6px; text-align:center; margin-bottom:12px; font-family:var(--font-mono);}
+.pass-gate-box .btn-primary{width:100%; background:var(--rust); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:13.5px;}
+.pass-gate-box .btn-primary:hover{background:#8f3a26;}
+.pass-gate-error{color:var(--rust); font-size:12.5px; font-weight:700; margin-top:10px; min-height:16px; font-family:var(--font-mono);}
 .gate-spinner{width:22px; height:22px; border:3px solid var(--paper2); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .owner-badge{font-family:var(--font-mono); font-size:10px; background:var(--gold); color:var(--ink); padding:2px 8px; border-radius:10px; font-weight:700; cursor:pointer;}
@@ -236,6 +247,18 @@ input, select, textarea{font-family:inherit;}
 </style>
 </head>
 <body>
+
+<div class="pass-gate-bg" id="passGateBg">
+  <div class="pass-gate-box">
+    <div class="brand-mark">COMP-INTEL <em>360</em></div>
+    <p>Enter the passcode to open this dashboard.</p>
+    <input type="password" id="passGateInput" maxlength="4" inputmode="numeric" placeholder="••••" autofocus>
+    <button class="btn-primary" onclick="submitPassGate()">Unlock</button>
+    <div class="pass-gate-error" id="passGateError"></div>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none;">
 
 <div class="gate-bg" id="gateBg">
   <div class="gate-box" id="gateBox"></div>
@@ -3373,6 +3396,30 @@ function startPolling(){
 function tickClock(){
   document.getElementById('clockMeta').textContent = new Date().toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'});
 }
+const DASHBOARD_PASSCODE = '3369';
+function submitPassGate(){
+  const input = document.getElementById('passGateInput');
+  const errEl = document.getElementById('passGateError');
+  const val = (input.value||'').trim();
+  if(val === DASHBOARD_PASSCODE){
+    document.getElementById('passGateBg').style.display = 'none';
+    document.getElementById('appRoot').style.display = '';
+    boot();
+  }else{
+    errEl.textContent = 'wrong Passcode';
+    input.value = '';
+    input.focus();
+  }
+}
+(function initPassGate(){
+  const input = document.getElementById('passGateInput');
+  if(input){
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') submitPassGate();
+    });
+  }
+})();
+
 async function boot(){
   const ok = await resolveAccess();
   if(ok) await finishBoot();
@@ -3400,7 +3447,9 @@ async function loadMySelection(){
     }
   }catch(e){ /* keep default (all selected) */ }
 }
-boot();
 </script>
+
+</div><!-- /appRoot -->
+
 </body>
 </html>
